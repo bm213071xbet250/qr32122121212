@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Weight Detection</title>
+    <title>استخراج الوزن الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         body {
@@ -11,7 +11,6 @@
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
-            text-align: center;
         }
         .container {
             max-width: 800px;
@@ -23,6 +22,7 @@
         }
         h1 {
             color: #2c3e50;
+            text-align: center;
             margin-bottom: 30px;
         }
         .video-container {
@@ -73,6 +73,7 @@
             background-color: #f8f9fa;
             border-radius: 8px;
             min-height: 120px;
+            text-align: center;
         }
         .weight-value {
             font-size: 42px;
@@ -94,11 +95,6 @@
             color: #7f8c8d;
             margin-bottom: 10px;
         }
-        .examples {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
         .loading-bar {
             width: 0%;
             height: 4px;
@@ -106,11 +102,17 @@
             margin: 10px auto;
             transition: width 0.3s;
         }
+        .examples {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Enhanced Weight Detection</h1>
+        <h1>استخراج الوزن الذكي من الكاميرا</h1>
         
         <div class="video-container">
             <video id="video" autoplay playsinline></video>
@@ -118,23 +120,23 @@
         </div>
         
         <div class="controls">
-            <button id="startBtn">Start Detection</button>
-            <button id="stopBtn" disabled>Stop Detection</button>
+            <button id="startBtn">بدء الكشف</button>
+            <button id="stopBtn" disabled>إيقاف الكشف</button>
         </div>
         
         <div class="result-container">
-            <div class="status">Detected Weight:</div>
+            <div class="status">الوزن المكتشف:</div>
             <div class="loading-bar" id="loadingBar"></div>
             <div class="weight-value error" id="weightResult">--</div>
         </div>
         
         <div class="examples">
-            <p>Supported formats: 44.444 Kg, 44.444 kg, 44.444 k/g, 3.5 kg, 3,5 kg</p>
+            <p>التنسيقات المدعومة: ٤٤٫٤٤٤ كجم، 44.444 kg، 20,205 Kg، ٣,٥ وزن</p>
         </div>
     </div>
 
     <script>
-        // DOM elements
+        // عناصر DOM
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const startBtn = document.getElementById('startBtn');
@@ -146,7 +148,7 @@
         let detectionInterval = null;
         let lastWeight = null;
         
-        // Start camera and detection
+        // بدء تشغيل الكاميرا والكشف
         startBtn.addEventListener('click', async () => {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ 
@@ -160,15 +162,15 @@
                 startDetection();
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
-                updateResult("Scanning...", "scanning");
+                updateResult("جاري المسح...", "scanning");
             } catch (err) {
-                console.error("Camera access error: ", err);
-                updateResult("Camera error", "error");
-                alert("Could not access the camera. Please ensure you've granted camera permissions.");
+                console.error("خطأ في الوصول للكاميرا: ", err);
+                updateResult("خطأ في الكاميرا", "error");
+                alert("تعذر الوصول إلى الكاميرا. يرجى التأكد من منح الإذن.");
             }
         });
         
-        // Stop detection
+        // إيقاف الكشف
         stopBtn.addEventListener('click', () => {
             stopDetection();
             if (stream) {
@@ -180,13 +182,13 @@
             updateResult("--", "error");
         });
         
-        // Start weight detection
+        // بدء الكشف عن الوزن
         function startDetection() {
             stopDetection();
             detectionInterval = setInterval(detectWeight, 1500);
         }
         
-        // Stop detection
+        // إيقاف الكشف
         function stopDetection() {
             if (detectionInterval) {
                 clearInterval(detectionInterval);
@@ -194,7 +196,7 @@
             }
         }
         
-        // Update result display
+        // تحديث عرض النتيجة
         function updateResult(text, state) {
             weightResult.textContent = text;
             weightResult.className = "weight-value " + state;
@@ -208,15 +210,15 @@
             }
         }
         
-        // Enhanced image processing
+        // معالجة الصورة المحسنة
         function processImage(imageData) {
             const ctx = canvas.getContext('2d');
             
-            // Apply multiple filters for better OCR
+            // تطبيق فلاتر متعددة لتحسين OCR
             ctx.filter = 'contrast(1.3) brightness(1.2) saturate(1.2)';
             ctx.drawImage(imageData, 0, 0, canvas.width, canvas.height);
             
-            // Convert to grayscale
+            // تحويل إلى التدرج الرمادي
             const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageDataObj.data;
             
@@ -231,30 +233,30 @@
             ctx.filter = 'none';
         }
         
-        // Detect weight using Tesseract.js
+        // الكشف عن الوزن باستخدام Tesseract.js
         async function detectWeight() {
             const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Capture and process image
+            // التقاط ومعالجة الصورة
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             processImage(video);
             
             try {
-                updateResult("Processing...", "scanning");
+                updateResult("جاري المعالجة...", "scanning");
                 
                 const { data: { text } } = await Tesseract.recognize(
                     canvas,
-                    'eng',
+                    'ara+eng', // دعم العربية والإنجليزية
                     {
                         logger: m => {
                             if (m.status === "recognizing text") {
                                 loadingBar.style.width = `${m.progress * 100}%`;
                             }
                         },
-                        tessedit_char_whitelist: '0123456789.,kKgG/ ',
-                        tessedit_pageseg_mode: 6, // Assume a single uniform block of text
+                        tessedit_char_whitelist: '٠١٢٣٤٥٦٧٨٩٠١٢٣٤٥٦٧٨٩.,kKgG/ وزن',
+                        tessedit_pageseg_mode: 6, // افتراض كتلة نصية موحدة
                     }
                 );
                 
@@ -262,39 +264,49 @@
                 
                 if (weight) {
                     lastWeight = weight;
-                    updateResult(`${weight} kg`, "success");
+                    updateResult(`${weight} كجم`, "success");
                 } else if (lastWeight) {
-                    updateResult(`${lastWeight} kg (last detected)`, "success");
+                    updateResult(`${lastWeight} كجم (آخر وزن تم اكتشافه)`, "success");
                 } else {
-                    updateResult("No weight detected", "error");
+                    updateResult("لم يتم اكتشاف وزن", "error");
                 }
             } catch (err) {
-                console.error("OCR processing error: ", err);
+                console.error("خطأ في معالجة OCR: ", err);
                 if (lastWeight) {
-                    updateResult(`${lastWeight} kg (last detected)`, "success");
+                    updateResult(`${lastWeight} كجم (آخر وزن تم اكتشافه)`, "success");
                 } else {
-                    updateResult("Processing error", "error");
+                    updateResult("خطأ في المعالجة", "error");
                 }
             }
         }
         
-        // Enhanced weight extraction
+        // استخراج الوزن المحسن
         function extractWeight(text) {
-            // Normalize text
-            const normalizedText = text.toLowerCase()
-                .replace(/\s+/g, ' ')
-                .replace(/\s*k\s*g\s*/g, 'kg')
-                .replace(/\s*k\s*\/\s*g\s*/g, 'k/g')
-                .trim();
+            // تحويل الأرقام العربية إلى إنجليزية لتبسيط المعالجة
+            const arabicToEnglish = {
+                '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+                '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+                '٫': '.', '،': ','
+            };
             
-            // More precise weight patterns
+            let normalizedText = text;
+            for (const [arabic, english] of Object.entries(arabicToEnglish)) {
+                normalizedText = normalizedText.replace(new RegExp(arabic, 'g'), english);
+            }
+            
+            // البحث عن أنماط الوزن
             const weightPatterns = [
-                // Standard formats: number followed by unit
-                /(\d{1,5}[.,]\d{1,5}|\d{1,5})\s*(?:kg|k\/g)(?:\s|$)/i,
-                /(?:^|\s)(?:kg|k\/g)\s*(\d{1,5}[.,]\d{1,5}|\d{1,5})(?:\s|$)/i,
+                // وزن 20,205 أو 20.205
+                /(?:وزن|الوزن|WEIGHT|PESO|weight|peso)[:\s]*(\d+[.,]\d+|\d+)/i,
                 
-                // Standalone numbers that might be weights
-                /(?:^|\s)(\d{1,5}[.,]\d{1,5}|\d{1,5})(?:\s|$)(?!.*(?:kg|k\/g))/i
+                // 20,205 Kg أو 20.205 كجم
+                /(\d+[.,]\d+|\d+)\s*(?:kg|k\/g|كجم|كيلو)/i,
+                
+                // Kg 20,205 أو كجم 20.205
+                /(?:kg|k\/g|كجم|كيلو)[:\s]*(\d+[.,]\d+|\d+)/i,
+                
+                // في الجداول (مثل الصورة المرفقة)
+                /(?:GROSS WEIGHT|PESO BRUTO|الوزن)[:\s]*(\d+[.,]\d+|\d+)/i
             ];
             
             for (const pattern of weightPatterns) {
@@ -302,12 +314,13 @@
                 if (match && match[1]) {
                     let number = match[1];
                     
-                    // Validate number range (0.001 to 999.999)
+                    // استبدال الفاصلة بالنقطة
                     number = number.replace(',', '.');
                     const numValue = parseFloat(number);
                     
+                    // التحقق من نطاق الوزن المعقول (0.001 إلى 999.999)
                     if (numValue >= 0.001 && numValue <= 999.999) {
-                        // Format number to max 3 decimal places
+                        // تقريب إلى 3 منازل عشرية
                         return Math.round(numValue * 1000) / 1000;
                     }
                 }
