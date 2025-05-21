@@ -1,474 +1,320 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام مسح أوزان الذكي</title>
-    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <title>Enhanced Weight Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             background-color: #f5f5f5;
-        }
-        .scanner-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background-color: #2c3e50;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            color: white;
-        }
-        .scanner-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #34495e;
-            margin-bottom: 20px;
-        }
-        .scanner-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #f39c12;
-        }
-        .scanner-window {
-            width: 100%;
-            height: 300px;
-            background-color: #000;
-            border: 4px solid #34495e;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        #interactive {
-            width: 100%;
-            height: 100%;
-        }
-        .scan-line {
-            position: absolute;
-            width: 100%;
-            height: 3px;
-            background-color: #f39c12;
-            top: 50%;
-            animation: scan 2s infinite linear;
-            box-shadow: 0 0 15px #f39c12;
-        }
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
-        }
-        .result-display {
-            background-color: #34495e;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .weight-section {
             text-align: center;
-            margin-bottom: 15px;
         }
-        .weight-value {
-            font-size: 48px;
-            font-weight: bold;
-            color: #2ecc71;
-            margin: 10px 0;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .unit {
-            font-size: 24px;
-            color: #3498db;
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
         }
-        .details-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: space-between;
+        .video-container {
+            position: relative;
+            margin: 0 auto 20px;
+            width: 100%;
+            max-width: 600px;
         }
-        .detail-box {
-            background-color: #3d566e;
-            padding: 10px 15px;
-            border-radius: 6px;
-            flex: 1;
-            min-width: 120px;
+        #video {
+            width: 100%;
+            border-radius: 8px;
+            background-color: #ddd;
+            display: block;
+            margin: 0 auto;
+        }
+        #canvas {
+            display: none;
         }
         .controls {
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
+            margin-bottom: 25px;
         }
-        .btn {
+        button {
             padding: 12px 25px;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-stop {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .btn-export {
             background-color: #3498db;
             color: white;
-        }
-        .btn-clear {
-            background-color: #f39c12;
-            color: white;
-        }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #2ecc71;
-            color: white;
-            padding: 12px 20px;
+            border: none;
             border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transform: translateX(200%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
         }
-        .notification.show {
-            transform: translateX(0);
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
         }
-        .notification.error {
-            background-color: #e74c3c;
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
         }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            color: white;
-            font-size: 24px;
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            min-height: 120px;
+        }
+        .weight-value {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: all 0.3s;
+        }
+        .scanning {
+            color: #3498db;
+        }
+        .success {
+            color: #27ae60;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .status {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        .examples {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .loading-bar {
+            width: 0%;
+            height: 4px;
+            background-color: #3498db;
+            margin: 10px auto;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
-    <div class="scanner-container">
-        <div class="scanner-header">
-            <div class="scanner-title">نظام مسح الأوزان الذكي</div>
-            <div class="scanner-status">
-                <span id="status-text">جاري التهيئة...</span>
-            </div>
-        </div>
+    <div class="container">
+        <h1>Enhanced Weight Detection</h1>
         
-        <div class="scanner-window">
-            <div id="interactive"></div>
-            <div class="scan-line" id="scan-line"></div>
-        </div>
-        
-        <div class="result-display">
-            <div class="weight-section">
-                <div class="weight-value" id="weight-value">0.00</div>
-                <div class="unit">كيلوجرام</div>
-            </div>
-            <div class="details-section">
-                <div class="detail-box" id="product-type">نوع المنتج: ---</div>
-                <div class="detail-box" id="net-weight">الوزن الصافي: ---</div>
-                <div class="detail-box" id="expiry-date">تاريخ الانتهاء: ---</div>
-                <div class="detail-box" id="scan-time">وقت المسح: ---</div>
-            </div>
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
         </div>
         
         <div class="controls">
-            <button class="btn btn-stop" id="stop-btn">
-                <span>⏹</span> إيقاف المسح
-            </button>
-            <button class="btn btn-clear" id="clear-btn">
-                <span>🗑️</span> مسح البيانات
-            </button>
-            <button class="btn btn-export" id="export-btn">
-                <span>📤</span> تصدير النتائج
-            </button>
+            <button id="startBtn">Start Detection</button>
+            <button id="stopBtn" disabled>Stop Detection</button>
+        </div>
+        
+        <div class="result-container">
+            <div class="status">Detected Weight:</div>
+            <div class="loading-bar" id="loadingBar"></div>
+            <div class="weight-value error" id="weightResult">--</div>
+        </div>
+        
+        <div class="examples">
+            <p>Supported formats: 44.444 Kg, 44.444 kg, 44.444 k/g, 3.5 kg, 3,5 kg</p>
         </div>
     </div>
 
-    <div class="notification" id="notification"></div>
-
-    <audio id="scanSound" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3" preload="auto"></audio>
-    <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
-
     <script>
-        // عناصر واجهة المستخدم
-        const weightValue = document.getElementById('weight-value');
-        const productType = document.getElementById('product-type');
-        const netWeight = document.getElementById('net-weight');
-        const expiryDate = document.getElementById('expiry-date');
-        const scanTime = document.getElementById('scan-time');
-        const stopBtn = document.getElementById('stop-btn');
-        const clearBtn = document.getElementById('clear-btn');
-        const exportBtn = document.getElementById('export-btn');
-        const statusText = document.getElementById('status-text');
-        const scanLine = document.getElementById('scan-line');
-        const notification = document.getElementById('notification');
+        // DOM elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const weightResult = document.getElementById('weightResult');
+        const loadingBar = document.getElementById('loadingBar');
         
-        // متغيرات التطبيق
-        let scanHistory = [];
-        let isScanning = true;
-        let currentWeight = 0;
+        let stream = null;
+        let detectionInterval = null;
+        let lastWeight = null;
         
-        // بدء الماسح الضوئي تلقائياً عند تحميل الصفحة
-        window.addEventListener('DOMContentLoaded', () => {
-            initScanner();
-        });
-
-        // تهيئة الماسح الضوئي
-        async function initScanner() {
+        // Start camera and detection
+        startBtn.addEventListener('click', async () => {
             try {
-                statusText.textContent = "جاري تشغيل الكاميرا...";
-                
-                await Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: document.querySelector('#interactive'),
-                        constraints: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            facingMode: "environment",
-                            aspectRatio: { ideal: 16/9 }
-                        },
-                    },
-                    decoder: {
-                        readers: ["qr_code_reader", "ean_reader", "code_128_reader"],
-                        debug: {
-                            drawBoundingBox: false,
-                            showFrequency: false,
-                            drawScanline: false,
-                            showPattern: false
-                        }
-                    },
-                    locate: true,
-                    frequency: 10
-                }, function(err) {
-                    if (err) {
-                        throw err;
-                    }
-                    Quagga.start();
-                    statusText.textContent = "جاهز للمسح";
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
                 });
-
-                Quagga.onDetected(async function(result) {
-                    const code = result.codeResult.code;
-                    const now = new Date();
-                    const timeString = now.toLocaleTimeString();
-                    
-                    // معالجة النص لاستخراج البيانات
-                    const scanResult = processScannedText(code);
-                    
-                    if (scanResult.weight) {
-                        currentWeight = scanResult.weight;
-                        weightValue.textContent = currentWeight.toFixed(2);
-                        
-                        // تحديث تفاصيل المنتج
-                        productType.textContent = `نوع المنتج: ${scanResult.productType || '---'}`;
-                        netWeight.textContent = `الوزن الصافي: ${scanResult.netWeight || '---'}`;
-                        expiryDate.textContent = `تاريخ الانتهاء: ${scanResult.expiryDate || '---'}`;
-                        scanTime.textContent = `وقت المسح: ${timeString}`;
-                        
-                        // إضافة إلى السجل
-                        scanHistory.push({
-                            time: timeString,
-                            weight: currentWeight,
-                            productType: scanResult.productType,
-                            netWeight: scanResult.netWeight,
-                            expiryDate: scanResult.expiryDate
-                        });
-                        
-                        playScanSound();
-                        showNotification(`تم قراءة الوزن: ${currentWeight.toFixed(2)} كجم`);
-                        
-                        // اهتزاز الجهاز إن أمكن
-                        if (navigator.vibrate) navigator.vibrate(100);
-                    } else {
-                        playErrorSound();
-                        showError("لم يتم التعرف على وزن صالح");
-                    }
-                });
-                
+                video.srcObject = stream;
+                startDetection();
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                updateResult("Scanning...", "scanning");
             } catch (err) {
-                console.error('خطأ في الماسح:', err);
-                statusText.textContent = "خطأ في التشغيل";
-                showError("فشل في تشغيل الماسح. يرجى تحديث الصفحة");
+                console.error("Camera access error: ", err);
+                updateResult("Camera error", "error");
+                alert("Could not access the camera. Please ensure you've granted camera permissions.");
+            }
+        });
+        
+        // Stop detection
+        stopBtn.addEventListener('click', () => {
+            stopDetection();
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            updateResult("--", "error");
+        });
+        
+        // Start weight detection
+        function startDetection() {
+            stopDetection();
+            detectionInterval = setInterval(detectWeight, 1500);
+        }
+        
+        // Stop detection
+        function stopDetection() {
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
             }
         }
         
-        // معالجة النص الممسوح لاستخراج البيانات
-        function processScannedText(text) {
-            const result = {
-                weight: null,
-                netWeight: null,
-                productType: null,
-                expiryDate: null
-            };
+        // Update result display
+        function updateResult(text, state) {
+            weightResult.textContent = text;
+            weightResult.className = "weight-value " + state;
             
-            // أنماط البحث عن الأوزان (من أمثلة الصور المقدمة)
+            if (state === "scanning") {
+                loadingBar.style.width = "100%";
+                loadingBar.style.opacity = "1";
+            } else {
+                loadingBar.style.width = "0%";
+                loadingBar.style.opacity = "0";
+            }
+        }
+        
+        // Enhanced image processing
+        function processImage(imageData) {
+            const ctx = canvas.getContext('2d');
+            
+            // Apply multiple filters for better OCR
+            ctx.filter = 'contrast(1.3) brightness(1.2) saturate(1.2)';
+            ctx.drawImage(imageData, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to grayscale
+            const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageDataObj.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg; // R
+                data[i + 1] = avg; // G
+                data[i + 2] = avg; // B
+            }
+            
+            ctx.putImageData(imageDataObj, 0, 0);
+            ctx.filter = 'none';
+        }
+        
+        // Detect weight using Tesseract.js
+        async function detectWeight() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Capture and process image
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            processImage(video);
+            
+            try {
+                updateResult("Processing...", "scanning");
+                
+                const { data: { text } } = await Tesseract.recognize(
+                    canvas,
+                    'eng',
+                    {
+                        logger: m => {
+                            if (m.status === "recognizing text") {
+                                loadingBar.style.width = `${m.progress * 100}%`;
+                            }
+                        },
+                        tessedit_char_whitelist: '0123456789.,kKgG/ ',
+                        tessedit_pageseg_mode: 6, // Assume a single uniform block of text
+                    }
+                );
+                
+                const weight = extractWeight(text);
+                
+                if (weight) {
+                    lastWeight = weight;
+                    updateResult(`${weight} kg`, "success");
+                } else if (lastWeight) {
+                    updateResult(`${lastWeight} kg (last detected)`, "success");
+                } else {
+                    updateResult("No weight detected", "error");
+                }
+            } catch (err) {
+                console.error("OCR processing error: ", err);
+                if (lastWeight) {
+                    updateResult(`${lastWeight} kg (last detected)`, "success");
+                } else {
+                    updateResult("Processing error", "error");
+                }
+            }
+        }
+        
+        // Enhanced weight extraction
+        function extractWeight(text) {
+            // Normalize text
+            const normalizedText = text.toLowerCase()
+                .replace(/\s+/g, ' ')
+                .replace(/\s*k\s*g\s*/g, 'kg')
+                .replace(/\s*k\s*\/\s*g\s*/g, 'k/g')
+                .trim();
+            
+            // More precise weight patterns
             const weightPatterns = [
-                /GROSS WEIGHT[\s:]*([\d,]+)\s*Kg/i,       // من الصورة الأولى
-                /الجمالي\s*([\d.]+)/i,                     // من الصورة الثانية
-                /وزن\s*:\s*([\d.]+)/i,
-                /الوزن\s*:\s*([\d.]+)/i,
-                /([\d.,]+)\s*(كجم|kg|KG|کیلو)/i
+                // Standard formats: number followed by unit
+                /(\d{1,5}[.,]\d{1,5}|\d{1,5})\s*(?:kg|k\/g)(?:\s|$)/i,
+                /(?:^|\s)(?:kg|k\/g)\s*(\d{1,5}[.,]\d{1,5}|\d{1,5})(?:\s|$)/i,
+                
+                // Standalone numbers that might be weights
+                /(?:^|\s)(\d{1,5}[.,]\d{1,5}|\d{1,5})(?:\s|$)(?!.*(?:kg|k\/g))/i
             ];
             
-            // البحث عن الوزن الإجمالي
             for (const pattern of weightPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    const weightStr = match[1].replace(',', '.');
-                    result.weight = parseFloat(weightStr);
-                    break;
+                const match = normalizedText.match(pattern);
+                if (match && match[1]) {
+                    let number = match[1];
+                    
+                    // Validate number range (0.001 to 999.999)
+                    number = number.replace(',', '.');
+                    const numValue = parseFloat(number);
+                    
+                    if (numValue >= 0.001 && numValue <= 999.999) {
+                        // Format number to max 3 decimal places
+                        return Math.round(numValue * 1000) / 1000;
+                    }
                 }
             }
             
-            // البحث عن الوزن الصافي (من الصورة الأولى)
-            const netWeightMatch = text.match(/(?:NET WEIGHT|الوزن الصافي)[\s:]*([\d,]+)\s*Kg/i);
-            if (netWeightMatch) {
-                result.netWeight = netWeightMatch[1].replace(',', '.') + ' كجم';
-            }
-            
-            // البحث عن نوع المنتج (من الصورتين)
-            const productMatch = text.match(/(FROZEN BOVINE OFFALS|فريش فارم صدور مدخنة|صنف|نوع)[:\s]*(.*)/i);
-            if (productMatch) {
-                result.productType = productMatch[2].split('\n')[0].trim();
-            }
-            
-            // البحث عن تاريخ الانتهاء (من الصورة الأولى)
-            const expiryMatch = text.match(/(?:EXPIRY DATE|تاريخ الانتهاء)[\s:]*([\d\/]+)/i);
-            if (expiryMatch) {
-                result.expiryDate = expiryMatch[1];
-            }
-            
-            return result;
+            return null;
         }
-        
-        // إيقاف الماسح الضوئي
-        function stopScanner() {
-            try {
-                isScanning = false;
-                Quagga.stop();
-                scanLine.style.display = 'none';
-                statusText.textContent = "متوقف";
-                showNotification("تم إيقاف الماسح");
-            } catch (err) {
-                console.error('خطأ في الإيقاف:', err);
-                showError("حدث خطأ أثناء إيقاف الماسح");
-            }
-        }
-        
-        // مسح البيانات
-        function clearHistory() {
-            scanHistory = [];
-            currentWeight = 0;
-            weightValue.textContent = "0.00";
-            productType.textContent = "نوع المنتج: ---";
-            netWeight.textContent = "الوزن الصافي: ---";
-            expiryDate.textContent = "تاريخ الانتهاء: ---";
-            showNotification("تم مسح البيانات");
-        }
-        
-        // تصدير النتائج
-        function exportHistory() {
-            if (scanHistory.length === 0) {
-                showError("لا توجد بيانات للتصدير");
-                return;
-            }
-            
-            try {
-                let csvContent = "الوقت,الوزن (كجم),نوع المنتج,الوزن الصافي,تاريخ الانتهاء\n";
-                
-                scanHistory.forEach(item => {
-                    csvContent += `${item.time},${item.weight},${item.productType || ''},${item.netWeight || ''},${item.expiryDate || ''}\n`;
-                });
-                
-                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.setAttribute('href', url);
-                link.setAttribute('download', `سجل_الأوزان_${new Date().toISOString().slice(0,10)}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showNotification("تم تصدير البيانات بنجاح");
-            } catch (err) {
-                console.error('خطأ في التصدير:', err);
-                showError("حدث خطأ أثناء تصدير البيانات");
-            }
-        }
-        
-        // تشغيل صوت المسح الناجح
-        function playScanSound() {
-            try {
-                scanSound.currentTime = 0;
-                scanSound.play().catch(e => console.log("خطأ في تشغيل الصوت:", e));
-            } catch (e) {
-                console.log("لا يمكن تشغيل الصوت:", e);
-            }
-        }
-        
-        // تشغيل صوت الخطأ
-        function playErrorSound() {
-            try {
-                errorSound.currentTime = 0;
-                errorSound.play().catch(e => console.log("خطأ في تشغيل الصوت:", e));
-            } catch (e) {
-                console.log("لا يمكن تشغيل الصوت:", e);
-            }
-        }
-        
-        // عرض الإشعارات
-        function showNotification(message = "تمت العملية بنجاح") {
-            notification.textContent = message;
-            notification.classList.remove('error');
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        function showError(message) {
-            notification.textContent = message;
-            notification.classList.add('error', 'show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        // أحداث الأزرار
-        stopBtn.addEventListener('click', stopScanner);
-        clearBtn.addEventListener('click', clearHistory);
-        exportBtn.addEventListener('click', exportHistory);
-        
-        // إيقاف الماسح عند مغادرة الصفحة
-        window.addEventListener('beforeunload', () => {
-            if (isScanning && Quagga) {
-                Quagga.stop();
-            }
-        });
     </script>
 </body>
 </html>
